@@ -4,8 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
-import compression from 'compression';
-import cookieParser from 'cookie-parser';
+import * as compression from 'compression';
+import * as cookieParser from 'cookie-parser';
 
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './shared/filters/global-exception.filter';
