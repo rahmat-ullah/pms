@@ -46,6 +46,11 @@ export declare class User {
     emailVerificationToken?: string;
     passwordResetToken?: string;
     passwordResetExpires?: Date;
+    passwordHistory?: string[];
+    passwordChangedAt?: Date;
+    passwordExpiresAt?: Date;
+    failedLoginAttempts?: number;
+    accountLockedUntil?: Date;
     refreshTokens: string[];
     preferences: Record<string, any>;
     metadata: Record<string, any>;

@@ -166,16 +166,31 @@ export class AuthResponseDto {
   accessToken: string;
 
   @ApiProperty({
-    description: 'Refresh token',
+    description: 'Refresh token (may be undefined if using HttpOnly cookies)',
     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    required: false,
   })
-  refreshToken: string;
+  refreshToken?: string;
 
   @ApiProperty({
     description: 'Token expiration time in seconds',
     example: 3600,
   })
   expiresIn: number;
+
+  @ApiProperty({
+    description: 'Session ID for session management',
+    example: 'abc123def456',
+    required: false,
+  })
+  sessionId?: string;
+
+  @ApiProperty({
+    description: 'CSRF token for state-changing operations',
+    example: 'xyz789uvw012',
+    required: false,
+  })
+  csrfToken?: string;
 
   @ApiProperty({
     description: 'User information',

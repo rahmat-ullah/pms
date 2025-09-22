@@ -17,6 +17,7 @@ import { DatabaseModule } from './shared/database/database.module';
 import { LoggerModule } from './shared/logger/logger.module';
 import { AuditModule } from './shared/audit/audit.module';
 import { AuditInterceptor } from './shared/audit/audit.interceptor';
+import { SeederModule } from './shared/database/seeders/seeder.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { validationSchema } from './config/validation.schema';
 
@@ -72,6 +73,7 @@ import { validationSchema } from './config/validation.schema';
     DatabaseModule,
     LoggerModule,
     AuditModule,
+    SeederModule,
 
     // Feature modules
     HealthModule,

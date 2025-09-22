@@ -201,7 +201,7 @@ __decorate([
 ], ChangePasswordDto.prototype, "newPassword", void 0);
 class AuthResponseDto {
     static _OPENAPI_METADATA_FACTORY() {
-        return { accessToken: { required: true, type: () => String }, refreshToken: { required: true, type: () => String }, expiresIn: { required: true, type: () => Number }, user: { required: true, type: () => ({ id: { required: true, type: () => String }, email: { required: true, type: () => String }, firstName: { required: true, type: () => String }, lastName: { required: true, type: () => String }, role: { required: true, enum: require("../../../shared/database/schemas/user.schema").UserRole }, status: { required: true, type: () => String }, permissions: { required: true, type: () => Object } }) } };
+        return { accessToken: { required: true, type: () => String }, refreshToken: { required: false, type: () => String }, expiresIn: { required: true, type: () => Number }, sessionId: { required: false, type: () => String }, csrfToken: { required: false, type: () => String }, user: { required: true, type: () => ({ id: { required: true, type: () => String }, email: { required: true, type: () => String }, firstName: { required: true, type: () => String }, lastName: { required: true, type: () => String }, role: { required: true, enum: require("../../../shared/database/schemas/user.schema").UserRole }, status: { required: true, type: () => String }, permissions: { required: true, type: () => Object } }) } };
     }
 }
 exports.AuthResponseDto = AuthResponseDto;
@@ -214,8 +214,9 @@ __decorate([
 ], AuthResponseDto.prototype, "accessToken", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
-        description: 'Refresh token',
+        description: 'Refresh token (may be undefined if using HttpOnly cookies)',
         example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        required: false,
     }),
     __metadata("design:type", String)
 ], AuthResponseDto.prototype, "refreshToken", void 0);
@@ -226,6 +227,22 @@ __decorate([
     }),
     __metadata("design:type", Number)
 ], AuthResponseDto.prototype, "expiresIn", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'Session ID for session management',
+        example: 'abc123def456',
+        required: false,
+    }),
+    __metadata("design:type", String)
+], AuthResponseDto.prototype, "sessionId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        description: 'CSRF token for state-changing operations',
+        example: 'xyz789uvw012',
+        required: false,
+    }),
+    __metadata("design:type", String)
+], AuthResponseDto.prototype, "csrfToken", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
         description: 'User information',

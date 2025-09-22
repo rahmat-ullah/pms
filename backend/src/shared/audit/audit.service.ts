@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { AuditLog, AuditLogDocument, AuditAction, AuditEntityType } from '../database/schemas/audit-log.schema';
@@ -20,6 +20,8 @@ export interface CreateAuditLogData {
 
 @Injectable()
 export class AuditService {
+  private readonly logger = new Logger(AuditService.name);
+
   constructor(
     @InjectModel(AuditLog.name) private auditLogModel: Model<AuditLogDocument>,
   ) {}
@@ -271,16 +273,7 @@ export class AuditService {
     };
   }
 
-  async cleanupOldLogs(retentionDays: number = 365): Promise<{ deletedCount: number }> {
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
 
-    const result = await this.auditLogModel.deleteMany({
-      timestamp: { $lt: cutoffDate },
-    });
-
-    return { deletedCount: result.deletedCount };
-  }
 
   private buildSearchFilter(query: AuditQueryDto): any {
     const filter: any = {};
@@ -338,17 +331,86 @@ export class AuditService {
       'socialSecurityNumber',
       'creditCard',
       'bankAccount',
+      'phoneNumber',
+      'personalEmail',
+      'emergencyContact',
+      'salary',
+      'bankDetails',
     ];
 
     const masked = { ...data };
 
-    for (const field of sensitiveFields) {
-      if (masked[field]) {
-        masked[field] = '***MASKED***';
+    // Recursively mask nested objects
+    for (const key in masked) {
+      if (sensitiveFields.includes(key.toLowerCase())) {
+        masked[key] = '***MASKED***';
+      } else if (typeof masked[key] === 'object' && masked[key] !== null) {
+        if (Array.isArray(masked[key])) {
+          masked[key] = masked[key].map((item: any) => this.maskSensitiveData(item));
+        } else {
+          masked[key] = this.maskSensitiveData(masked[key]);
+        }
       }
     }
 
     return masked;
+  }
+
+  /**
+   * Clean up old audit logs based on retention policy
+   */
+  async cleanupOldLogs(retentionDays: number = 2555): Promise<{ deletedCount: number }> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+
+    const result = await this.auditLogModel.deleteMany({
+      timestamp: { $lt: cutoffDate },
+    });
+
+    this.logger.log(`Cleaned up ${result.deletedCount} audit logs older than ${retentionDays} days`);
+    return { deletedCount: result.deletedCount };
+  }
+
+  /**
+   * Get audit log statistics
+   */
+  async getAuditStatistics(): Promise<any> {
+    const now = new Date();
+    const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const [
+      totalLogs,
+      logsLast24Hours,
+      logsLast7Days,
+      logsLast30Days,
+      actionStats,
+      entityStats,
+    ] = await Promise.all([
+      this.auditLogModel.countDocuments(),
+      this.auditLogModel.countDocuments({ timestamp: { $gte: last24Hours } }),
+      this.auditLogModel.countDocuments({ timestamp: { $gte: last7Days } }),
+      this.auditLogModel.countDocuments({ timestamp: { $gte: last30Days } }),
+      this.auditLogModel.aggregate([
+        { $group: { _id: '$action', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+      ]),
+      this.auditLogModel.aggregate([
+        { $group: { _id: '$entityType', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+      ]),
+    ]);
+
+    return {
+      totalLogs,
+      logsLast24Hours,
+      logsLast7Days,
+      logsLast30Days,
+      actionStats,
+      entityStats,
+      lastUpdated: new Date(),
+    };
   }
 
   private mapToResponseDto(auditLog: any): AuditResponseDto {
@@ -374,5 +436,40 @@ export class AuditService {
         fullName: `${auditLog.userId.firstName} ${auditLog.userId.lastName}`,
       } : undefined,
     };
+  }
+
+  // Authentication event logging
+  async logAuthEvent(data: {
+    userId?: string | null;
+    email: string;
+    action: string;
+    reason?: string;
+    ipAddress?: string;
+    userAgent?: string;
+    success: boolean;
+    metadata?: Record<string, any>;
+  }): Promise<void> {
+    try {
+      const auditLog = new this.auditLogModel({
+        action: data.action as AuditAction,
+        entityType: AuditEntityType.AUTH,
+        entityId: data.userId ? new Types.ObjectId(data.userId) : new Types.ObjectId(),
+        userId: data.userId ? new Types.ObjectId(data.userId) : undefined,
+        userEmail: data.email,
+        ipAddress: data.ipAddress,
+        userAgent: data.userAgent,
+        timestamp: new Date(),
+        metadata: {
+          success: data.success,
+          reason: data.reason,
+          ...data.metadata,
+        },
+      });
+
+      await auditLog.save();
+    } catch (error) {
+      // Log error but don't throw to avoid breaking authentication flow
+      console.error('Failed to log authentication event:', error);
+    }
   }
 }

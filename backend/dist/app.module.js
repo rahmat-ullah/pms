@@ -24,6 +24,7 @@ const database_module_1 = require("./shared/database/database.module");
 const logger_module_1 = require("./shared/logger/logger.module");
 const audit_module_1 = require("./shared/audit/audit.module");
 const audit_interceptor_1 = require("./shared/audit/audit.interceptor");
+const seeder_module_1 = require("./shared/database/seeders/seeder.module");
 const jwt_auth_guard_1 = require("./modules/auth/guards/jwt-auth.guard");
 const validation_schema_1 = require("./config/validation.schema");
 let AppModule = class AppModule {
@@ -74,6 +75,7 @@ exports.AppModule = AppModule = __decorate([
             database_module_1.DatabaseModule,
             logger_module_1.LoggerModule,
             audit_module_1.AuditModule,
+            seeder_module_1.SeederModule,
             health_module_1.HealthModule,
             auth_module_1.AuthModule,
             users_module_1.UsersModule,

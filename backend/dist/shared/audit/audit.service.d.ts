@@ -16,6 +16,7 @@ export interface CreateAuditLogData {
 }
 export declare class AuditService {
     private auditLogModel;
+    private readonly logger;
     constructor(auditLogModel: Model<AuditLogDocument>);
     createAuditLog(data: CreateAuditLogData): Promise<AuditLogDocument>;
     findAll(query: AuditQueryDto): Promise<{
@@ -36,10 +37,21 @@ export declare class AuditService {
     }>;
     getAuditStats(startDate?: Date, endDate?: Date): Promise<AuditStatsResponseDto>;
     getComplianceReport(startDate: Date, endDate: Date): Promise<any>;
+    private buildSearchFilter;
+    private maskSensitiveData;
     cleanupOldLogs(retentionDays?: number): Promise<{
         deletedCount: number;
     }>;
-    private buildSearchFilter;
-    private maskSensitiveData;
+    getAuditStatistics(): Promise<any>;
     private mapToResponseDto;
+    logAuthEvent(data: {
+        userId?: string | null;
+        email: string;
+        action: string;
+        reason?: string;
+        ipAddress?: string;
+        userAgent?: string;
+        success: boolean;
+        metadata?: Record<string, any>;
+    }): Promise<void>;
 }

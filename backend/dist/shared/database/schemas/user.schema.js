@@ -187,6 +187,42 @@ __decorate([
         select: false,
     }),
     __metadata("design:type", Array)
+], User.prototype, "passwordHistory", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({
+        type: Date,
+        default: null,
+    }),
+    __metadata("design:type", Date)
+], User.prototype, "passwordChangedAt", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({
+        type: Date,
+        default: null,
+    }),
+    __metadata("design:type", Date)
+], User.prototype, "passwordExpiresAt", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({
+        type: Number,
+        default: 0,
+    }),
+    __metadata("design:type", Number)
+], User.prototype, "failedLoginAttempts", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({
+        type: Date,
+        default: null,
+    }),
+    __metadata("design:type", Date)
+], User.prototype, "accountLockedUntil", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({
+        type: [String],
+        default: [],
+        select: false,
+    }),
+    __metadata("design:type", Array)
 ], User.prototype, "refreshTokens", void 0);
 __decorate([
     (0, mongoose_1.Prop)({

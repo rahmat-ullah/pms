@@ -23,6 +23,10 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typecheck": "tsc --noEmit",
+    "seed": "ts-node -r tsconfig-paths/register src/scripts/seed.ts",
+    "seed:clear": "ts-node -r tsconfig-paths/register src/scripts/seed.ts clear",
+    "seed:reseed": "ts-node -r tsconfig-paths/register src/scripts/seed.ts reseed",
+    "seed:status": "ts-node -r tsconfig-paths/register src/scripts/seed.ts status",
     "db:seed": "ts-node -r tsconfig-paths/register src/database/seeds/run-seeds.ts",
     "clean": "rimraf dist",
     "prebuild": "rimraf dist"
@@ -51,6 +55,7 @@
     "helmet": "^7.1.0",
     "ioredis": "^5.3.2",
     "joi": "^17.11.0",
+    "logger": "^0.0.1",
     "minio": "^7.1.3",
     "mongoose": "^8.0.3",
     "multer": "^1.4.5-lts.1",
@@ -113,9 +118,10 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
-    "moduleNameMapping": {
-      "^@/(.*)$": "<rootDir>/$1",
-      "^@shared/(.*)$": "<rootDir>/../shared/$1"
-    }
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/$1"
+    },
+    "testTimeout": 10000,
+    "maxWorkers": 1
   }
 }

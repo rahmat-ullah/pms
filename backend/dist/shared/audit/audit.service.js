@@ -11,15 +11,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var AuditService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuditService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const audit_log_schema_1 = require("../database/schemas/audit-log.schema");
-let AuditService = class AuditService {
+let AuditService = AuditService_1 = class AuditService {
     constructor(auditLogModel) {
         this.auditLogModel = auditLogModel;
+        this.logger = new common_1.Logger(AuditService_1.name);
     }
     async createAuditLog(data) {
         const auditLog = new this.auditLogModel({
@@ -223,14 +225,6 @@ let AuditService = class AuditService {
             })),
         };
     }
-    async cleanupOldLogs(retentionDays = 365) {
-        const cutoffDate = new Date();
-        cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
-        const result = await this.auditLogModel.deleteMany({
-            timestamp: { $lt: cutoffDate },
-        });
-        return { deletedCount: result.deletedCount };
-    }
     buildSearchFilter(query) {
         const filter = {};
         if (query.action) {
@@ -277,14 +271,65 @@ let AuditService = class AuditService {
             'socialSecurityNumber',
             'creditCard',
             'bankAccount',
+            'phoneNumber',
+            'personalEmail',
+            'emergencyContact',
+            'salary',
+            'bankDetails',
         ];
         const masked = { ...data };
-        for (const field of sensitiveFields) {
-            if (masked[field]) {
-                masked[field] = '***MASKED***';
+        for (const key in masked) {
+            if (sensitiveFields.includes(key.toLowerCase())) {
+                masked[key] = '***MASKED***';
+            }
+            else if (typeof masked[key] === 'object' && masked[key] !== null) {
+                if (Array.isArray(masked[key])) {
+                    masked[key] = masked[key].map((item) => this.maskSensitiveData(item));
+                }
+                else {
+                    masked[key] = this.maskSensitiveData(masked[key]);
+                }
             }
         }
         return masked;
+    }
+    async cleanupOldLogs(retentionDays = 2555) {
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+        const result = await this.auditLogModel.deleteMany({
+            timestamp: { $lt: cutoffDate },
+        });
+        this.logger.log(`Cleaned up ${result.deletedCount} audit logs older than ${retentionDays} days`);
+        return { deletedCount: result.deletedCount };
+    }
+    async getAuditStatistics() {
+        const now = new Date();
+        const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        const [totalLogs, logsLast24Hours, logsLast7Days, logsLast30Days, actionStats, entityStats,] = await Promise.all([
+            this.auditLogModel.countDocuments(),
+            this.auditLogModel.countDocuments({ timestamp: { $gte: last24Hours } }),
+            this.auditLogModel.countDocuments({ timestamp: { $gte: last7Days } }),
+            this.auditLogModel.countDocuments({ timestamp: { $gte: last30Days } }),
+            this.auditLogModel.aggregate([
+                { $group: { _id: '$action', count: { $sum: 1 } } },
+                { $sort: { count: -1 } },
+            ]),
+            this.auditLogModel.aggregate([
+                { $group: { _id: '$entityType', count: { $sum: 1 } } },
+                { $sort: { count: -1 } },
+            ]),
+        ]);
+        return {
+            totalLogs,
+            logsLast24Hours,
+            logsLast7Days,
+            logsLast30Days,
+            actionStats,
+            entityStats,
+            lastUpdated: new Date(),
+        };
     }
     mapToResponseDto(auditLog) {
         return {
@@ -310,9 +355,32 @@ let AuditService = class AuditService {
             } : undefined,
         };
     }
+    async logAuthEvent(data) {
+        try {
+            const auditLog = new this.auditLogModel({
+                action: data.action,
+                entityType: audit_log_schema_1.AuditEntityType.AUTH,
+                entityId: data.userId ? new mongoose_2.Types.ObjectId(data.userId) : new mongoose_2.Types.ObjectId(),
+                userId: data.userId ? new mongoose_2.Types.ObjectId(data.userId) : undefined,
+                userEmail: data.email,
+                ipAddress: data.ipAddress,
+                userAgent: data.userAgent,
+                timestamp: new Date(),
+                metadata: {
+                    success: data.success,
+                    reason: data.reason,
+                    ...data.metadata,
+                },
+            });
+            await auditLog.save();
+        }
+        catch (error) {
+            console.error('Failed to log authentication event:', error);
+        }
+    }
 };
 exports.AuditService = AuditService;
-exports.AuditService = AuditService = __decorate([
+exports.AuditService = AuditService = AuditService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(audit_log_schema_1.AuditLog.name)),
     __metadata("design:paramtypes", [mongoose_2.Model])

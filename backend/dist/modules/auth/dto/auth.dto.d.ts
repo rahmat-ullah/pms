@@ -27,8 +27,10 @@ export declare class ChangePasswordDto {
 }
 export declare class AuthResponseDto {
     accessToken: string;
-    refreshToken: string;
+    refreshToken?: string;
     expiresIn: number;
+    sessionId?: string;
+    csrfToken?: string;
     user: {
         id: string;
         email: string;

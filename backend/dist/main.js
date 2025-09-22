@@ -34,7 +34,16 @@ async function bootstrap() {
             origin: corsOrigin,
             credentials: true,
             methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-            allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+            allowedHeaders: [
+                'Content-Type',
+                'Authorization',
+                'Accept',
+                'X-CSRF-Token',
+                'X-XSRF-Token',
+                'X-Session-ID',
+                'X-Requested-With',
+            ],
+            exposedHeaders: ['X-CSRF-Token', 'X-XSRF-Token'],
         });
         app.setGlobalPrefix(`${apiPrefix}/${apiVersion}`);
         app.useGlobalPipes(new common_1.ValidationPipe({

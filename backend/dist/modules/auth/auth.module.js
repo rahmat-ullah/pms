@@ -17,6 +17,11 @@ const auth_controller_1 = require("./auth.controller");
 const jwt_strategy_1 = require("./strategies/jwt.strategy");
 const local_strategy_1 = require("./strategies/local.strategy");
 const user_schema_1 = require("../../shared/database/schemas/user.schema");
+const audit_module_1 = require("../../shared/audit/audit.module");
+const password_service_1 = require("./services/password.service");
+const session_service_1 = require("./services/session.service");
+const csrf_service_1 = require("./services/csrf.service");
+const permissions_service_1 = require("./services/permissions.service");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -35,10 +40,11 @@ exports.AuthModule = AuthModule = __decorate([
                 inject: [config_1.ConfigService],
             }),
             mongoose_1.MongooseModule.forFeature([{ name: user_schema_1.User.name, schema: user_schema_1.UserSchema }]),
+            audit_module_1.AuditModule,
         ],
         controllers: [auth_controller_1.AuthController],
-        providers: [auth_service_1.AuthService, jwt_strategy_1.JwtStrategy, local_strategy_1.LocalStrategy],
-        exports: [auth_service_1.AuthService, jwt_1.JwtModule],
+        providers: [auth_service_1.AuthService, password_service_1.PasswordService, session_service_1.SessionService, csrf_service_1.CSRFService, permissions_service_1.PermissionsService, jwt_strategy_1.JwtStrategy, local_strategy_1.LocalStrategy],
+        exports: [auth_service_1.AuthService, password_service_1.PasswordService, session_service_1.SessionService, csrf_service_1.CSRFService, permissions_service_1.PermissionsService, jwt_1.JwtModule],
     })
 ], AuthModule);
 //# sourceMappingURL=auth.module.js.map

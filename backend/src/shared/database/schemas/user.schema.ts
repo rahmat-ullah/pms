@@ -175,6 +175,37 @@ export class User {
     default: [],
     select: false,
   })
+  passwordHistory?: string[];
+
+  @Prop({
+    type: Date,
+    default: null,
+  })
+  passwordChangedAt?: Date;
+
+  @Prop({
+    type: Date,
+    default: null,
+  })
+  passwordExpiresAt?: Date;
+
+  @Prop({
+    type: Number,
+    default: 0,
+  })
+  failedLoginAttempts?: number;
+
+  @Prop({
+    type: Date,
+    default: null,
+  })
+  accountLockedUntil?: Date;
+
+  @Prop({
+    type: [String],
+    default: [],
+    select: false,
+  })
   refreshTokens: string[];
 
   @Prop({
